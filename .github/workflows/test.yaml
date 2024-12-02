@@ -47,3 +47,6 @@ jobs:
       - name: Publish CTRF Flaky Rate Test Summary Results
         run: npx github-actions-ctrf flaky ctrf-report.json
         if: always()
+      - name: Publish CTRF Test Summary Results
+        run: npx github-actions-ctrf ctrf-report.json
+        if: always()
