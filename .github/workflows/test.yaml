@@ -36,9 +36,18 @@ jobs:
       #   run: go install github.com/ctrf-io/go-ctrf-json-reporter/cmd/go-ctrf-json-reporter@latest
       # - name: Convert test_results.json to CTRF format
       #   run: go-ctrf-json-reporter < test_results.json
-      - name: Install go-ctrf-json-reporter
+
+      # - name: Install go-ctrf-json-reporter
+      #   run: |
+      #     go install github.com/taman9333/go-ctrf-json-reporter/cmd/go-ctrf-json-reporter@main
+
+      - name: Clone Modified go-ctrf-json-reporter
         run: |
-          go install github.com/taman9333/go-ctrf-json-reporter/cmd/go-ctrf-json-reporter@main
+          git clone https://github.com/taman9333/go-ctrf-json-reporter.git /tmp/go-ctrf-json-reporter
+          cd /tmp/go-ctrf-json-reporter
+          go mod tidy
+          go build -o /usr/local/bin/go-ctrf-json-reporter ./cmd/go-ctrf-json-reporter
+
       - name: Convert test_results.json to CTRF format
         run: go-ctrf-json-reporter < test_results.json
       - uses: actions/setup-node@v4
