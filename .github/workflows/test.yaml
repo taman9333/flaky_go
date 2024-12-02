@@ -29,8 +29,13 @@ jobs:
           --jsonfile test_results.json \
           --packages="./..."
 
+      # - name: Install go-ctrf-json-reporter
+      #   run: go install github.com/ctrf-io/go-ctrf-json-reporter/cmd/go-ctrf-json-reporter@latest
+      # - name: Convert test_results.json to CTRF format
+      #   run: go-ctrf-json-reporter < test_results.json
       - name: Install go-ctrf-json-reporter
-        run: go install github.com/ctrf-io/go-ctrf-json-reporter/cmd/go-ctrf-json-reporter@latest
+        run: |
+          go install github.com/taman9333/go-ctrf-json-reporter/cmd/go-ctrf-json-reporter@latest
       - name: Convert test_results.json to CTRF format
         run: go-ctrf-json-reporter < test_results.json
       - uses: actions/setup-node@v4
