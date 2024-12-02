@@ -50,3 +50,5 @@ jobs:
       - name: Publish CTRF pull request comment
         run: npx github-actions-ctrf pull-request ctrf-report.json
         if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
