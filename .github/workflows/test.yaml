@@ -41,9 +41,12 @@ jobs:
         with:
           name: ctrf-report
           path: ctrf-report.json
-      - name: Publish CTRF Flaky Rate Test Summary Results
-        run: npx github-actions-ctrf flaky ctrf-report.json
-        if: always()
-      - name: Publish CTRF Test Summary Results
-        run: npx github-actions-ctrf ctrf-report.json
+      # - name: Publish CTRF Flaky Rate Test Summary Results
+      #   run: npx github-actions-ctrf flaky ctrf-report.json
+      #   if: always()
+      # - name: Publish CTRF Test Summary Results
+      #   run: npx github-actions-ctrf ctrf-report.json
+      #   if: always()
+      - name: Publish CTRF pull request comment
+        run: npx github-actions-ctrf pull-request ctrf-report.json
         if: always()
