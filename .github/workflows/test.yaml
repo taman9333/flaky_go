@@ -74,8 +74,8 @@ jobs:
         if: always()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      # - name: Post PR Comment
-      #   run: npx github-actions-ctrf flaky-rate ctrf-report.json --pull-request
-      #   if: always()
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Post PR Comment
+        run: npx github-actions-ctrf flaky-rate ctrf-report.json --pull-request
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
