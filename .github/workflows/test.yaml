@@ -1,9 +1,6 @@
 name: Test with Flaky Report
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
     branches:
       - main
