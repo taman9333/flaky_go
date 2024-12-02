@@ -29,6 +29,9 @@ jobs:
           --jsonfile test_results.json \
           --packages="./..."
 
+      - name: Clean Go Module Cache
+        run: go clean -modcache
+
       # - name: Install go-ctrf-json-reporter
       #   run: go install github.com/ctrf-io/go-ctrf-json-reporter/cmd/go-ctrf-json-reporter@latest
       # - name: Convert test_results.json to CTRF format
