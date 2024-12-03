@@ -30,7 +30,9 @@ jobs:
           gotestsum \
           --format=github-actions \
           --rerun-fails --rerun-fails=10 --rerun-fails-max-failures=10 \
-          --packages="./..." | go run tools/flaky_test_report/main.go
+          --packages="./..." > raw_output.log
+          cat raw_output.log
+          go run tools/flaky_test_report/main.go < raw_output.log
 
       - name: Debug Flaky Report
         run: |
