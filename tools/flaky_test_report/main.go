@@ -17,44 +17,38 @@ func main() {
 		output.WriteString(scanner.Text() + "\n")
 	}
 
-	// Regex for flaky test detection
-	flakyTestPattern := regexp.MustCompile(`FAIL\s+([\w.\/]+)\s+\(re-run\s+(\d+)\)\s+\(\d+\.\d+s\)`)
+	// Regex to detect flaky test failures
+	flakyTestPattern := regexp.MustCompile(`===\s+FAIL:\s+([^\s(]+)`)
 
-	// Count flaky tests
+	// Map to count flaky tests
 	flakyCounts := make(map[string]int)
+
+	// Log start of parsing
 	fmt.Println("Parsing gotestsum output:")
 	scanner = bufio.NewScanner(strings.NewReader(output.String()))
-	// for scanner.Scan() {
-	// 	line := scanner.Text()
-	// 	fmt.Println("Processing line:", line) // Debug each line
-	// 	matches := flakyTestPattern.FindStringSubmatch(line)
-	// 	if len(matches) > 0 {
-	// 		testName := matches[1]
-	// 		fmt.Printf("Matched flaky test: %s\n", testName) // Log matched test
-	// 		flakyCounts[testName]++
-	// 	}
-	// }
-
 	for scanner.Scan() {
 		line := scanner.Text()
-		fmt.Println("Processing line:", line) // Log every line
+		fmt.Printf("Processing line: %s\n", line) // Debug each line
+
+		// Match flaky tests
 		matches := flakyTestPattern.FindStringSubmatch(line)
 		if len(matches) > 0 {
-			fmt.Printf("Matched flaky test: %s\n", matches[1]) // Log matched lines
-			flakyCounts[matches[1]]++
+			testName := matches[1]
+			fmt.Printf("Matched flaky test: %s\n", testName) // Log matched test
+			flakyCounts[testName]++
 		} else {
-			fmt.Println("No match for line:", line) // Log lines that don't match
+			fmt.Printf("No match for line: %s\n", line) // Log unmatched lines
 		}
 	}
 
 	// If no flaky tests are detected
-	fmt.Println("Flaky counts:", flakyCounts)
 	if len(flakyCounts) == 0 {
 		fmt.Println("No flaky tests detected.")
 		return
 	}
 
 	// Log flaky tests
+	fmt.Println("Flaky counts:", flakyCounts)
 	fmt.Println("Detected flaky tests:")
 	for testName, count := range flakyCounts {
 		fmt.Printf("- `%s`: %d occurrences\n", testName, count)
