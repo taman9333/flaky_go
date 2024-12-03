@@ -18,7 +18,7 @@ func main() {
 	}
 
 	// Regex for flaky test detection
-	flakyTestPattern := regexp.MustCompile(`FAIL\s+([\w./]+)\s+\(re-run\s+(\d+)\)\s+\(\d+\.\d+s\)`)
+	flakyTestPattern := regexp.MustCompile(`FAIL\s+([\w.\/]+)\s+\(re-run\s+(\d+)\)\s+\(\d+\.\d+s\)`)
 
 	// Count flaky tests
 	flakyCounts := make(map[string]int)
