@@ -29,10 +29,10 @@ jobs:
           gotestsum \
             --format=github-actions \
             --rerun-fails --rerun-fails=10 --rerun-fails-max-failures=10 \
-            --packages="./..." > raw_output.log
+            --packages="./..." > raw_output.log || true
           echo "=== Raw Output ==="
           cat raw_output.log
-          echo "=================="
+    echo "=================="
 
       - name: Run Tests and Detect Flaky Tests
         run: |
