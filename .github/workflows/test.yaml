@@ -32,6 +32,11 @@ jobs:
             --rerun-fails --rerun-fails=10 --rerun-fails-max-failures=10 \
             --packages="./..." | tee output.log | go run tools/flaky_test_report/main.go > flaky_report.json || true
 
+      - name: Debug Flaky Report
+        run: |
+          echo "Contents of flaky_report.json:"
+          cat flaky_report.json || echo "File not found or empty"
+
       - name: Check for Flaky Tests
         id: check-flaky
         run: |
