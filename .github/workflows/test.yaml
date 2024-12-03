@@ -42,6 +42,11 @@ jobs:
             --packages="./..." > raw_output.log
           go run tools/flaky_test_report/main.go < raw_output.log
 
+      - name: Debug raw_output
+        run: |
+          echo "Contents of raw_output.log:"
+          cat raw_output.log || echo "File not found or empty"
+
       - name: Debug Flaky Report
         run: |
           echo "Contents of flaky_report.json:"
