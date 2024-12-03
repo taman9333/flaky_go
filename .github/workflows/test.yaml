@@ -30,7 +30,7 @@ jobs:
           gotestsum \
           --format=github-actions \
           --rerun-fails --rerun-fails=10 --rerun-fails-max-failures=10 \
-          --packages="./..." | tee output.log | tee >(go run tools/flaky_test_report/main.go > flaky_report.json)
+          --packages="./..." | go run tools/flaky_test_report/main.go
 
       - name: Debug Flaky Report
         run: |
