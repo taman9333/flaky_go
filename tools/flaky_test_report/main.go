@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"fmt"
 	"os"
-	"os/exec"
 	"regexp"
 	"strings"
 )
@@ -18,51 +17,34 @@ func main() {
 		output.WriteString(scanner.Text() + "\n")
 	}
 
-	// Check exit code
-	cmd := exec.Command("bash", "-c", "echo $?")
-	exitCodeOutput, err := cmd.Output()
-	if err != nil {
-		fmt.Printf("Error getting exit code: %v\n", err)
-		os.Exit(1)
-	}
+	// Regex for flaky test detection
+	flakyTestPattern := regexp.MustCompile(`FAIL\s+([\w./]+)\s+\(re-run\s+(\d+)\)\s+\(\d+\.\d+s\)`)
 
-	exitCode := strings.TrimSpace(string(exitCodeOutput))
-	if exitCode != "0" {
-		// Non-zero exit code, indicate a retry is needed
-		fmt.Println("Non-zero exit code detected. Tests need to be retried.")
-		return
-	}
-
-	// Process output for flaky tests
-	// flakyTestPattern := regexp.MustCompile(`FAIL ([\w./]+) \((re-run \d+)\)`)
-	flakyTestPattern := regexp.MustCompile(`FAIL\s+([\w./]+)\s+\(re-run\s+\d+\)`)
+	// Count flaky tests
 	flakyCounts := make(map[string]int)
-
-	scanner = bufio.NewScanner(strings.NewReader(output.String()))
 	fmt.Println("Parsing gotestsum output:")
+	scanner = bufio.NewScanner(strings.NewReader(output.String()))
 	for scanner.Scan() {
 		line := scanner.Text()
-		fmt.Println("!!!")
-		fmt.Println(line) // Debug: Log each line being processed
-		fmt.Println("!!!")
+		fmt.Println("Processing line:", line) // Debug each line
 		matches := flakyTestPattern.FindStringSubmatch(line)
-		if len(matches) > 1 {
+		if len(matches) > 0 {
 			testName := matches[1]
+			fmt.Printf("Matched flaky test: %s\n", testName) // Log matched test
 			flakyCounts[testName]++
 		}
 	}
 
-	// If there are no flaky tests, exit
-	fmt.Println("!!! flaky counts")
-	fmt.Println(flakyCounts)
-	fmt.Println("!!!.")
+	// If no flaky tests are detected
+	fmt.Println("Flaky counts:", flakyCounts)
 	if len(flakyCounts) == 0 {
 		fmt.Println("No flaky tests detected.")
 		return
 	}
 
-	// Log flaky tests and their counts
+	// Log flaky tests
+	fmt.Println("Detected flaky tests:")
 	for testName, count := range flakyCounts {
-		fmt.Printf("- `%s`: %d flakiness occurrence(s)\n", testName, count)
+		fmt.Printf("- `%s`: %d occurrences\n", testName, count)
 	}
 }
