@@ -29,8 +29,25 @@ jobs:
           --jsonfile test_results.json \
           --packages="./..."
 
-      - name: Install go-ctrf-json-reporter
-        run: go install github.com/ctrf-io/go-ctrf-json-reporter/cmd/go-ctrf-json-reporter@latest
+      - name: Clean Go Module Cache
+        run: go clean -modcache
+
+      # - name: Install go-ctrf-json-reporter
+      #   run: go install github.com/ctrf-io/go-ctrf-json-reporter/cmd/go-ctrf-json-reporter@latest
+      # - name: Convert test_results.json to CTRF format
+      #   run: go-ctrf-json-reporter < test_results.json
+
+      # - name: Install go-ctrf-json-reporter
+      #   run: |
+      #     go install github.com/taman9333/go-ctrf-json-reporter/cmd/go-ctrf-json-reporter@main
+
+      - name: Clone Modified go-ctrf-json-reporter
+        run: |
+          git clone https://github.com/taman9333/go-ctrf-json-reporter.git /tmp/go-ctrf-json-reporter
+          cd /tmp/go-ctrf-json-reporter
+          go mod tidy
+          go build -o /usr/local/bin/go-ctrf-json-reporter ./cmd/go-ctrf-json-reporter
+
       - name: Convert test_results.json to CTRF format
         run: go-ctrf-json-reporter < test_results.json
       - uses: actions/setup-node@v4
@@ -57,8 +74,8 @@ jobs:
         if: always()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      # - name: Post PR Comment
-      #   run: npx github-actions-ctrf flaky-rate ctrf-report.json --pull-request
-      #   if: always()
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Post PR Comment
+        run: npx github-actions-ctrf flaky-rate ctrf-report.json --pull-request
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

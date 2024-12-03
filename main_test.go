@@ -16,7 +16,7 @@ func TestStable(t *testing.T) {
 // }
 
 func Test_Flaky2(t *testing.T) {
-	if rand.Float32() < 0.7 {
+	if rand.Float32() < 0.75 {
 		t.Fatal("Flaky test failed!")
 	}
 }
