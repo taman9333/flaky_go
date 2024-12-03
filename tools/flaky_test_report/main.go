@@ -24,14 +24,26 @@ func main() {
 	flakyCounts := make(map[string]int)
 	fmt.Println("Parsing gotestsum output:")
 	scanner = bufio.NewScanner(strings.NewReader(output.String()))
+	// for scanner.Scan() {
+	// 	line := scanner.Text()
+	// 	fmt.Println("Processing line:", line) // Debug each line
+	// 	matches := flakyTestPattern.FindStringSubmatch(line)
+	// 	if len(matches) > 0 {
+	// 		testName := matches[1]
+	// 		fmt.Printf("Matched flaky test: %s\n", testName) // Log matched test
+	// 		flakyCounts[testName]++
+	// 	}
+	// }
+
 	for scanner.Scan() {
 		line := scanner.Text()
-		fmt.Println("Processing line:", line) // Debug each line
+		fmt.Println("Processing line:", line) // Log every line
 		matches := flakyTestPattern.FindStringSubmatch(line)
 		if len(matches) > 0 {
-			testName := matches[1]
-			fmt.Printf("Matched flaky test: %s\n", testName) // Log matched test
-			flakyCounts[testName]++
+			fmt.Printf("Matched flaky test: %s\n", matches[1]) // Log matched lines
+			flakyCounts[matches[1]]++
+		} else {
+			fmt.Println("No match for line:", line) // Log lines that don't match
 		}
 	}
 

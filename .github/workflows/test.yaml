@@ -24,14 +24,22 @@ jobs:
       - name: Install gotestsum
         run: go install gotest.tools/gotestsum@latest
 
-      - name: Run Tests and Detect Flaky Tests
-        id: test-and-detect-flaky
+      - name: Run Tests and Log Output
         run: |
           gotestsum \
-          --format=github-actions \
-          --rerun-fails --rerun-fails=10 --rerun-fails-max-failures=10 \
-          --packages="./..." > raw_output.log
+            --format=github-actions \
+            --rerun-fails --rerun-fails=10 --rerun-fails-max-failures=10 \
+            --packages="./..." > raw_output.log
+          echo "=== Raw Output ==="
           cat raw_output.log
+          echo "=================="
+
+      - name: Run Tests and Detect Flaky Tests
+        run: |
+          gotestsum \
+            --format=github-actions \
+            --rerun-fails --rerun-fails=10 --rerun-fails-max-failures=10 \
+            --packages="./..." > raw_output.log
           go run tools/flaky_test_report/main.go < raw_output.log
 
       - name: Debug Flaky Report
