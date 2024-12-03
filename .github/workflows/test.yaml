@@ -32,7 +32,7 @@ jobs:
             --packages="./..." > raw_output.log || true
           echo "=== Raw Output ==="
           cat raw_output.log
-    echo "=================="
+          echo "=================="
 
       - name: Run Tests and Detect Flaky Tests
         run: |
