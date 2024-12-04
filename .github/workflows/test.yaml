@@ -29,7 +29,7 @@ jobs:
           gotestsum \
           --format=github-actions \
           --rerun-fails --rerun-fails=10 --rerun-fails-max-failures=10 \
-          --packages="./..." -- -count=1 | tee /dev/tty | sed -n 's/\x1b\[[0-9;]*m//g; /=== Failed/,$p' > /tmp/raw_output.log
+          --packages="./..." -- -count=1 | tee /dev/stdout | sed -n 's/\x1b\[[0-9;]*m//g; /=== Failed/,$p' > /tmp/raw_output.log
           go run tools/flaky_test_report/main.go < /tmp/raw_output.log > flaky_report.txt
 
       - name: Output Flaky Tests
