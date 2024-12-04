@@ -3,10 +3,16 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"os"
 	"regexp"
 )
+
+type FlakyTest struct {
+	TestName    string `json:"test_name"`
+	Occurrences int    `json:"occurrences"`
+}
 
 func main() {
 	// Read filtered output from stdin
@@ -35,13 +41,27 @@ func main() {
 		}
 	}
 
+	// Convert the results to JSON
 	if len(flakyCounts) == 0 {
+		fmt.Println("[]") // Output empty JSON array
 		return
 	}
 
+	var flakyTests []FlakyTest
 	for test, count := range flakyCounts {
 		if count <= 10 {
-			fmt.Printf("- `%s`: %d occurrences\n", test, count)
+			flakyTests = append(flakyTests, FlakyTest{
+				TestName:    test,
+				Occurrences: count,
+			})
 		}
 	}
+
+	jsonOutput, err := json.MarshalIndent(flakyTests, "", "  ")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error generating JSON: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Println(string(jsonOutput))
 }

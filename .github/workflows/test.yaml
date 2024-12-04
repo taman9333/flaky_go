@@ -33,7 +33,12 @@ jobs:
           exit_code=${PIPESTATUS[0]}
           [ $exit_code -ne 0 ] && exit $exit_code
           sed 's/\x1b\[[0-9;]*m//g' /tmp/full_output.log | awk '/=== Failed/ {found=1} found' > /tmp/raw_output.log
-          go run tools/flaky_test_report/main.go < /tmp/raw_output.log > flaky_report.txt
+          go run tools/flaky_test_report/main.go < /tmp/raw_output.log > flaky_report.json
+
+      - name: Generate PR Comment
+        if: success()
+        run: |
+          go run tools/generate_pr_comment/main.go
 
       - name: Comment on PR
         if: success()
@@ -42,20 +47,22 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require('fs');
-            const report = fs.readFileSync('flaky_report.txt', 'utf8').trim();
-            if (!report) {
-              console.log("No flaky tests detected. Skipping PR comment.");
-            } else {
-              github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.payload.pull_request.number,
-                body: `### Flaky Tests Detected:\n\n${report}`
-              });
+            const commentPath = 'pr_comment_body.txt';
+            if (!fs.existsSync(commentPath)) {
+              console.log("PR comment body not found. Skipping comment.");
+              return;
             }
 
-      - name: Update Flaky Tests in Google Sheets
-        if: success()
-        run: go run tools/update_flaky_tests/main.go
-        env:
-          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+            const body = fs.readFileSync(commentPath, 'utf8').trim();
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body,
+            });
+
+      # - name: Update Flaky Tests in Google Sheets
+      #   if: success()
+      #   run: go run tools/update_flaky_tests/main.go
+      #   env:
+      #     GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
