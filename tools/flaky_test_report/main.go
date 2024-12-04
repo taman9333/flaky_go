@@ -35,15 +35,13 @@ func main() {
 		}
 	}
 
-	// Output results
 	if len(flakyCounts) == 0 {
-		fmt.Println("No flaky tests detected.")
-	} else {
-		fmt.Println("Detected flaky tests:")
-		for test, count := range flakyCounts {
-			if count <= 10 {
-				fmt.Printf("- `%s`: %d occurrences\n", test, count)
-			}
+		return
+	}
+
+	for test, count := range flakyCounts {
+		if count <= 10 {
+			fmt.Printf("- `%s`: %d occurrences\n", test, count)
 		}
 	}
 }
