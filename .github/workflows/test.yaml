@@ -61,8 +61,8 @@ jobs:
               body,
             });
 
-      # - name: Update Flaky Tests in Google Sheets
-      #   if: success()
-      #   run: go run tools/update_flaky_tests/main.go
-      #   env:
-      #     GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+      - name: Update Flaky Tests in Google Sheets
+        if: success()
+        run: go run tools/update_flaky_tests/main.go
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}

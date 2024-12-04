@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"google.golang.org/api/option"
@@ -17,6 +17,11 @@ const (
 	spreadsheetID = "1abPAJi43FxnYgcjx6wnex_GbiTha3UEvqWKNCCAGpFI" // Replace with your Google Sheets ID
 	sheetName     = "Flaky tests"                                  // Replace with your sheet name
 )
+
+type FlakyTest struct {
+	TestName    string `json:"test_name"`
+	Occurrences int    `json:"occurrences"`
+}
 
 func main() {
 	// Load Google credentials from environment variable
@@ -33,20 +38,23 @@ func main() {
 		log.Fatalf("Unable to create Sheets service: %v", err)
 	}
 
-	// Read flaky report
-	reportData, err := os.ReadFile("flaky_report.txt")
+	// Read flaky report JSON
+	reportData, err := os.ReadFile("flaky_report.json")
 	if err != nil {
-		log.Fatalf("Unable to read flaky_report.txt: %v", err)
+		log.Fatalf("Unable to read flaky_report.json: %v", err)
 	}
 
-	report := string(reportData)
-	if report == "" {
+	var flakyTests []FlakyTest
+	if err := json.Unmarshal(reportData, &flakyTests); err != nil {
+		log.Fatalf("Unable to parse flaky report JSON: %v", err)
+	}
+
+	if len(flakyTests) == 0 {
 		fmt.Println("No flaky tests detected. Skipping update.")
 		return
 	}
 
 	// Read existing data from the spreadsheet
-	// readRange := fmt.Sprintf("%s!A:C", sheetName)
 	readRange := "A:C"
 	resp, err := srv.Spreadsheets.Values.Get(spreadsheetID, readRange).Do()
 	if err != nil {
@@ -72,26 +80,14 @@ func main() {
 		}
 	}
 
-	// Parse flaky report and prepare data for update or append
-	lines := splitLines(report)
+	// Prepare data for update or append
 	var rowsToAppend [][]interface{}
 	var dataToUpdate []*sheets.ValueRange
-	for _, line := range lines {
-		parts := splitFlakyLine(line)
-		if len(parts) != 2 {
-			continue
-		}
-		testName, flakesStr := parts[0], parts[1]
-		newFlakes, err := strconv.Atoi(flakesStr)
-		if err != nil {
-			log.Printf("Invalid flakes number for test %s: %v", testName, err)
-			continue
-		}
+	for _, test := range flakyTests {
 		lastFlakied := time.Now().Format(time.RFC3339)
-		if rowIndex, exists := existingData[testName]; exists {
+		if rowIndex, exists := existingData[test.TestName]; exists {
 			// Update existing row
-			totalFlakes := existingFlakes[testName] + newFlakes
-			// updateRange := fmt.Sprintf("%s!B%d:C%d", sheetName, rowIndex, rowIndex)
+			totalFlakes := existingFlakes[test.TestName] + test.Occurrences
 			updateRange := fmt.Sprintf("B%d:C%d", rowIndex, rowIndex)
 			vr := &sheets.ValueRange{
 				Range:  updateRange,
@@ -101,8 +97,8 @@ func main() {
 		} else {
 			// Append new row
 			rowsToAppend = append(rowsToAppend, []interface{}{
-				testName,
-				newFlakes,
+				test.TestName,
+				test.Occurrences,
 				lastFlakied,
 			})
 		}
@@ -122,7 +118,6 @@ func main() {
 
 	// Append new rows
 	if len(rowsToAppend) > 0 {
-		// writeRange := fmt.Sprintf("%s!A:C", sheetName)
 		writeRange := "A:C"
 		valueRange := &sheets.ValueRange{
 			Values: rowsToAppend,
@@ -137,25 +132,4 @@ func main() {
 	}
 
 	fmt.Println("Flaky tests updated successfully.")
-}
-
-// splitLines splits the report into lines.
-func splitLines(report string) []string {
-	lines := []string{}
-	for _, line := range strings.Split(report, "\n") {
-		trimmed := strings.TrimSpace(line)
-		if trimmed != "" {
-			lines = append(lines, trimmed)
-		}
-	}
-	return lines
-}
-
-// splitFlakyLine splits a line into test name and occurrence count.
-func splitFlakyLine(line string) []string {
-	parts := strings.SplitN(line, ":", 2)
-	if len(parts) == 2 {
-		parts[1] = strings.TrimSpace(strings.ReplaceAll(parts[1], "occurrences", ""))
-	}
-	return parts
 }

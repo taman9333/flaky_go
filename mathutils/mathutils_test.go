@@ -1,6 +1,7 @@
 package mathutils
 
 import (
+	"math/rand/v2"
 	"testing"
 )
 
@@ -18,8 +19,8 @@ func TestMultiply(t *testing.T) {
 	}
 }
 
-// func Test_AddFlaky(t *testing.T) {
-// 	if rand.Float32() < 0.7 {
-// 		t.Fatal("Flaky test failed!")
-// 	}
-// }
+func Test_AddFlaky(t *testing.T) {
+	if rand.Float32() < 0.7 {
+		t.Fatal("Flaky test failed!")
+	}
+}
