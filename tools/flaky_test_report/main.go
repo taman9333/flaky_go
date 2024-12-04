@@ -25,7 +25,6 @@ func main() {
 	// Regex to detect test failures with package and test name
 	flakyTestPattern := regexp.MustCompile(`===\s+FAIL:\s+(\w+)\s+(\w+)`)
 
-	// Map to track test failures
 	flakyCounts := make(map[string]int)
 
 	// Parse the filtered output

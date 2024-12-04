@@ -3,8 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
+	"os"
 )
 
 type FlakyTest struct {
@@ -13,10 +14,9 @@ type FlakyTest struct {
 }
 
 func main() {
-	// Read the JSON report
-	data, err := ioutil.ReadFile("flaky_report.json")
+	data, err := io.ReadAll(os.Stdin)
 	if err != nil {
-		log.Fatalf("Failed to read flaky_report.json: %v", err)
+		log.Fatalf("Failed to read input: %v", err)
 	}
 
 	var flakyTests []FlakyTest
@@ -24,7 +24,6 @@ func main() {
 		log.Fatalf("Failed to parse flaky_report.json: %v", err)
 	}
 
-	// Generate PR comment body
 	if len(flakyTests) == 0 {
 		fmt.Println("No flaky tests detected. Skipping PR comment generation.")
 		return
@@ -35,8 +34,7 @@ func main() {
 		commentBody += fmt.Sprintf("- `%s`: %d occurrences\n", test.TestName, test.Occurrences)
 	}
 
-	// Write the comment body to a file
-	if err := ioutil.WriteFile("pr_comment_body.txt", []byte(commentBody), 0644); err != nil {
+	if err := os.WriteFile("pr_comment_body.txt", []byte(commentBody), 0644); err != nil {
 		log.Fatalf("Failed to write pr_comment_body.txt: %v", err)
 	}
 

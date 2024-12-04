@@ -38,7 +38,7 @@ jobs:
       - name: Generate PR Comment
         if: success()
         run: |
-          go run tools/generate_pr_comment/main.go
+          go run tools/generate_pr_comment/main.go < flaky_report.json
 
       - name: Comment on PR
         if: success()
