@@ -30,39 +30,27 @@ jobs:
           --format=github-actions \
           --rerun-fails --rerun-fails=10 --rerun-fails-max-failures=10 \
           --packages="./..." -- -count=1 | sed -n 's/\x1b\[[0-9;]*m//g; /=== Failed/,$p' > /tmp/raw_output.log
-          echo "=== Raw Output ==="
-          cat /tmp/raw_output.log
-          echo "=================="
+          go run tools/flaky_test_report/main.go < /tmp/raw_output.log > flaky_report.txt
 
-      - name: Debug raw_output
+      - name: Output Flaky Tests
+        if: always()
         run: |
-          echo "Contents of /tmp/raw_output.log:"
-          cat /tmp/raw_output.log || echo "File not found or empty"
+          echo "Flaky Tests Detected:"
+          cat flaky_report.txt
 
-      - name: Run Tests and Detect Flaky Tests
-        run: go run tools/flaky_test_report/main.go < /tmp/raw_output.log
-
-      - name: Debug Flaky Report
-        run: |
-          echo "Contents of flaky_report.json:"
-          cat flaky_report.json || echo "File not found or empty"
-
-      - name: Check for Flaky Tests
-        id: check-flaky
-        run: |
-          if [ -s flaky_report.json ]; then
-            echo "flaky_found=true" >> $GITHUB_ENV
-          else
-            echo "flaky_found=false" >> $GITHUB_ENV
-          fi
-
-      - name: Post Comment on PR for Flaky Tests
-        if: env.flaky_found == 'true'
-        run: |
-          COMMENT_BODY=$(cat flaky_report.json | jq -r '.tests | map("- `\(.name)`: \(.occurrences) flakiness occurrence(s)") | join("\n")')
-          PAYLOAD=$(jq -n --arg body "### Flaky Test Report\n\n$COMMENT_BODY" '{body: $body}')
-          curl -X POST \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            -d "$PAYLOAD" \
-            "${{ github.event.pull_request.url }}/comments"
+      - name: Comment on PR
+        if: success() || failure()
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('flaky_report.txt', 'utf8');
+            if (report.trim() !== 'No flaky tests detected.') {
+              github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                body: `### Flaky Tests Detected:\n\n${report}`
+              });
+            }
