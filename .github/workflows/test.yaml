@@ -24,14 +24,6 @@ jobs:
       - name: Install gotestsum
         run: go install gotest.tools/gotestsum@latest
 
-      # - name: Run Tests and Log Output
-      #   run: |
-      #     gotestsum \
-      #     --format=github-actions \
-      #     --rerun-fails --rerun-fails=10 --rerun-fails-max-failures=10 \
-      #     --packages="./..." -- -count=1 | tee >(sed -n 's/\x1b\[[0-9;]*m//g; /=== Failed/,$p' > /tmp/raw_output.log)
-      #     go run tools/flaky_test_report/main.go < /tmp/raw_output.log > flaky_report.txt
-
       - name: Run Tests and Log Output
         run: |
           gotestsum \
@@ -61,3 +53,9 @@ jobs:
                 body: `### Flaky Tests Detected:\n\n${report}`
               });
             }
+
+      - name: Update Flaky Tests in Google Sheets
+        if: success()
+        run: go run tools/update_flaky_tests/main.go
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
