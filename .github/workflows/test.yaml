@@ -27,20 +27,20 @@ jobs:
       - name: Run Tests and Log Output
         run: |
           gotestsum \
-            --format=github-actions \
-            --rerun-fails --rerun-fails=10 --rerun-fails-max-failures=10 \
-            --packages="./..." > raw_output.log || true
+          --format=github-actions \
+          --rerun-fails --rerun-fails=10 --rerun-fails-max-failures=10 \
+          --packages="./..." -- -count=1 | sed -n 's/\x1b\[[0-9;]*m//g; /=== Failed/,$p' > /tmp/raw_output.log
           echo "=== Raw Output ==="
-          cat raw_output.log
+          cat /tmp/raw_output.log
           echo "=================="
 
       - name: Debug raw_output
         run: |
-          echo "Contents of raw_output.log:"
-          cat raw_output.log || echo "File not found or empty"
+          echo "Contents of /tmp/raw_output.log:"
+          cat /tmp/raw_output.log || echo "File not found or empty"
 
       - name: Run Tests and Detect Flaky Tests
-        run: go run tools/flaky_test_report/main.go < raw_output.log
+        run: go run tools/flaky_test_report/main.go < /tmp/raw_output.log
 
       - name: Debug Flaky Report
         run: |

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"math/rand"
+	"math/rand/v2"
 	"testing"
 )
 
@@ -15,8 +15,9 @@ func TestStable(t *testing.T) {
 // 	}
 // }
 
+// handle if all test cases failed
 func Test_Flaky2(t *testing.T) {
-	if rand.Float32() < 0.75 {
+	if rand.Float32() < 0.9 {
 		t.Fatal("Flaky test failed!")
 	}
 }
