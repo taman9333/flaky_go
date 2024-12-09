@@ -29,6 +29,7 @@ jobs:
           gotestsum \
           --format=github-actions \
           --rerun-fails --rerun-fails=10 --rerun-fails-max-failures=10 \
+          --jsonfile='test_results.json' \
           --packages="./..." -- -count=1
           exit_code=${PIPESTATUS[0]}
           [ $exit_code -ne 0 ] && exit $exit_code
