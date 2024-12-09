@@ -43,7 +43,7 @@ func main() {
 	apiToken := os.Getenv("JIRA_API_TOKEN")
 
 	if apiToken == "" {
-		log.Fatal("JIRA_API_TOKEN environment variables are not set")
+		log.Fatal("JIRA_API_TOKEN environment variables is not set")
 	}
 
 	data, err := os.ReadFile("flaky_report.json")
