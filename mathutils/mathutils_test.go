@@ -1,26 +1,32 @@
 package mathutils
 
 import (
-	"math/rand/v2"
+	"math/rand"
 	"testing"
+
+	"github.com/stretchr/testify/suite"
 )
 
-func TestAdd(t *testing.T) {
+type MathUtilsTestSuite struct {
+	suite.Suite
+}
+
+func (suite *MathUtilsTestSuite) TestAdd() {
 	result := Add(2, 3)
-	if result != 5 {
-		t.Errorf("Expected 5, got %d", result)
-	}
+	suite.Equal(5, result, "Expected 5, got %d", result)
 }
 
-func TestMultiply(t *testing.T) {
+func (suite *MathUtilsTestSuite) TestMultiply() {
 	result := Multiply(2, 3)
-	if result != 6 {
-		t.Errorf("Expected 6, got %d", result)
+	suite.Equal(6, result, "Expected 6, got %d", result)
+}
+
+func (suite *MathUtilsTestSuite) Test_AddFlaky() {
+	if rand.Float32() < 0.7 {
+		suite.T().Fatal("Flaky test failed!")
 	}
 }
 
-func Test_AddFlaky(t *testing.T) {
-	if rand.Float32() < 0.7 {
-		t.Fatal("Flaky test failed!")
-	}
+func TestMathUtilsSuite(t *testing.T) {
+	suite.Run(t, new(MathUtilsTestSuite))
 }

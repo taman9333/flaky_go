@@ -1,23 +1,27 @@
 package main
 
 import (
-	"math/rand/v2"
+	"math/rand"
 	"testing"
+
+	"github.com/stretchr/testify/suite"
 )
 
-func TestStable(t *testing.T) {
-	t.Log("This is a stable test")
+type MainTestSuite struct {
+	suite.Suite
 }
 
-// func TestFlaky(t *testing.T) {
-// 	if rand.Intn(2) == 0 {
-// 		t.Fatal("This test is flaky and fails randomly")
-// 	}
-// }
+func (suite *MainTestSuite) TestStable() {
+	suite.T().Log("This is a stable test")
+}
 
-// handle if all test cases failed
-func Test_Flaky2(t *testing.T) {
+// Simulate flaky test
+func (suite *MainTestSuite) Test_Flaky2() {
 	if rand.Float32() < 0.8 {
-		t.Fatal("Flaky test failed!")
+		suite.T().Fatal("Flaky test failed!")
 	}
+}
+
+func TestMainSuite(t *testing.T) {
+	suite.Run(t, new(MainTestSuite))
 }
