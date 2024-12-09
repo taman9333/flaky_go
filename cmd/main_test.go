@@ -1,7 +1,6 @@
 package main
 
 import (
-	"math/rand"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -17,9 +16,9 @@ func (suite *MainTestSuite) TestStable() {
 
 // Simulate flaky test
 func (suite *MainTestSuite) Test_Flaky2() {
-	if rand.Float32() < 0.8 {
-		suite.T().Fatal("Flaky test failed!")
-	}
+	// if rand.Float32() < 0.8 {
+	suite.T().Fatal("Flaky test failed!")
+	// }
 }
 
 func TestMainSuite(t *testing.T) {
