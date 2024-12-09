@@ -37,7 +37,7 @@ jobs:
         run: |
           failures=$(sed -n '2{p;q;}' test_results.xml | awk -F'"' '{print $4}')
           echo "Failures: $failures"
-          echo "::set-output name=failures::$failures"
+          echo "failures=$failures" >> $GITHUB_OUTPUT
 
       - name: Generate Flaky Report
         if: ${{ steps.check_failures.outputs.failures != '0' }}
