@@ -31,15 +31,26 @@ jobs:
           --rerun-fails --rerun-fails=10 --rerun-fails-max-failures=10 \
           --jsonfile='test_results.json' \
           --packages="./..." -- -count=1
+
+      - name: Check Failures in Test Results
+        id: check_failures
+        run: |
+          failures=$(sed -n '2{p;q;}' test_results.xml | awk -F'"' '{print $4}')
+          echo "Failures: $failures"
+          echo "::set-output name=failures::$failures"
+
+      - name: Generate Flaky Report
+        if: ${{ steps.check_failures.outputs.failures != '0' }}
+        run: |
           go run tools/flaky_test/flaky_test_report_json/main.go > flaky_report.json
 
       - name: Generate PR Comment
-        if: success()
+        if: ${{ steps.check_failures.outputs.failures != '0' }}
         run: |
           go run tools/flaky_test/generate_pr_comment/main.go < flaky_report.json
 
       - name: Comment on PR
-        if: success()
+        if: ${{ steps.check_failures.outputs.failures != '0' }}
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -66,7 +77,7 @@ jobs:
       #     GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
 
       - name: Update Jira Tickets for Flaky Tests
-        if: success()
+        if: ${{ steps.check_failures.outputs.failures != '0' }}
         run: go run tools/flaky_test/update_jira_tickets/main.go
         env:
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
