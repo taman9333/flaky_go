@@ -67,8 +67,8 @@ jobs:
       #   env:
       #     GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
 
-      # - name: Update Jira Tickets for Flaky Tests
-      #   if: success()
-      #   run: go run tools/flaky_test/update_jira_tickets/main.go
-      #   env:
-      #     JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+      - name: Update Jira Tickets for Flaky Tests
+        if: success()
+        run: go run tools/flaky_test/update_jira_tickets/main.go
+        env:
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
