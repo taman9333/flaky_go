@@ -42,7 +42,8 @@ func main() {
 
 		// Count flaky tests
 		if isValidTest(testResult) {
-			flakyCounts[testResult.Test]++
+			fullTestName := fmt.Sprintf("%v.%v", testResult.Package, testResult.Test)
+			flakyCounts[fullTestName]++
 		}
 	}
 
