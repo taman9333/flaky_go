@@ -1,7 +1,6 @@
 package mathutils
 
 import (
-	"math/rand/v2"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -22,9 +21,10 @@ func (suite *MathUtilsTestSuite) TestMultiply() {
 }
 
 func (suite *MathUtilsTestSuite) Test_AddFlaky() {
-	if rand.Float32() < 0.7 {
-		suite.T().Fatal("Flaky test failed!")
-	}
+	// if rand.Float32() < 0.7 {
+	// 	suite.T().Fatal("Flaky test failed!")
+	// }
+	suite.T().Log("This is a stable test")
 }
 
 func TestMathUtilsSuite(t *testing.T) {
