@@ -21,61 +21,54 @@ jobs:
       - name: Install Dependencies
         run: go mod tidy
 
-      - name: Run Tests with gotestsum
+      - name: Install gotestsum
+        run: go install gotest.tools/gotestsum@latest
+
+      - name: Run Tests and Log Output
         run: |
-          go install gotest.tools/gotestsum@latest
           gotestsum \
+          --format=github-actions \
           --rerun-fails --rerun-fails=10 --rerun-fails-max-failures=10 \
-          --jsonfile test_results.json \
-          --packages="./..."
+          --packages="./..." -- -count=1 | tee /tmp/full_output.log
+          exit_code=${PIPESTATUS[0]}
+          [ $exit_code -ne 0 ] && exit $exit_code
+          sed 's/\x1b\[[0-9;]*m//g' /tmp/full_output.log | awk '/=== Failed/ {found=1} found' > /tmp/raw_output.log
+          go run tools/flaky_test/flaky_test_report/main.go < /tmp/raw_output.log > flaky_report.json
 
-      - name: Clean Go Module Cache
-        run: go clean -modcache
-
-      # - name: Install go-ctrf-json-reporter
-      #   run: go install github.com/ctrf-io/go-ctrf-json-reporter/cmd/go-ctrf-json-reporter@latest
-      # - name: Convert test_results.json to CTRF format
-      #   run: go-ctrf-json-reporter < test_results.json
-
-      # - name: Install go-ctrf-json-reporter
-      #   run: |
-      #     go install github.com/taman9333/go-ctrf-json-reporter/cmd/go-ctrf-json-reporter@main
-
-      - name: Clone Modified go-ctrf-json-reporter
+      - name: Generate PR Comment
+        if: success()
         run: |
-          git clone https://github.com/taman9333/go-ctrf-json-reporter.git /tmp/go-ctrf-json-reporter
-          cd /tmp/go-ctrf-json-reporter
-          go mod tidy
-          go build -o /usr/local/bin/go-ctrf-json-reporter ./cmd/go-ctrf-json-reporter
+          go run tools/flaky_test/generate_pr_comment/main.go < flaky_report.json
 
-      - name: Convert test_results.json to CTRF format
-        run: go-ctrf-json-reporter < test_results.json
-      - uses: actions/setup-node@v4
+      - name: Comment on PR
+        if: success()
+        uses: actions/github-script@v6
         with:
-          node-version: "18.x"
-      - name: Upload ctrf report as an artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ctrf-report
-          path: ctrf-report.json
-      # - name: Publish CTRF Flaky Rate Test Summary Results
-      #   run: npx github-actions-ctrf flaky ctrf-report.json
-      #   if: always()
-      # - name: Publish CTRF Test Summary Results
-      #   run: npx github-actions-ctrf ctrf-report.json
-      #   if: always()
-      - name: Publish CTRF pull request comment
-        run: npx github-actions-ctrf pull-request ctrf-report.json
-        if: always()
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const commentPath = 'pr_comment_body.txt';
+            if (!fs.existsSync(commentPath)) {
+              console.log("PR comment body not found. Skipping comment.");
+              return;
+            }
+
+            const body = fs.readFileSync(commentPath, 'utf8').trim();
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body,
+            });
+
+      # - name: Update Flaky Tests in Google Sheets
+      #   if: success()
+      #   run: go run tools/update_flaky_tests/main.go
+      #   env:
+      #     GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+
+      - name: Update Jira Tickets for Flaky Tests
+        if: success()
+        run: go run tools/flaky_test/update_jira_tickets/main.go
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Post PR Comment
-        run: npx github-actions-ctrf flaky ctrf-report.json --pull-request
-        if: always()
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Post PR Comment
-        run: npx github-actions-ctrf flaky-rate ctrf-report.json --pull-request
-        if: always()
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
