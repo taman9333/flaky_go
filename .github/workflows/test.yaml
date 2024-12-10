@@ -29,16 +29,16 @@ jobs:
           gotestsum \
           --format=github-actions \
           --rerun-fails --rerun-fails=10 --rerun-fails-max-failures=10 \
-          --jsonfile='/tmp/test_results.json' --junitfile='/tmp/test_results.xml' \
+          --jsonfile='test_results.json' --junitfile='test_results.xml' \
           --packages="./..." -- -count=1
 
       - name: Upload Test Results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact
         with:
           name: test-results
           path: |
-            /tmp/test_results.json
-            /tmp/test_results.xml
+            test_results.json
+            test_results.xml
 
   flakytest:
     runs-on: ubuntu-latest
@@ -46,7 +46,7 @@ jobs:
 
     steps:
       - name: Download Test Results
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact
         with:
           name: test-results
 
