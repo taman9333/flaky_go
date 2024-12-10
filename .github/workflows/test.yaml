@@ -50,7 +50,8 @@ jobs:
       - name: Generate PR Comment
         if: ${{ steps.check_failures.outputs.failures != '0' }}
         run: |
-          go run tools/flaky_test/generate_pr_comment/main.go < flaky_report.json
+          flaky_test_comment_body=$(go run tools/flaky_test/generate_pr_comment/main.go < flaky_report.json)
+          echo "FLAKY_TEST_COMMENT_BODY=$flaky_test_comment_body" >> $GITHUB_ENV
 
       - name: Comment on PR
         if: ${{ steps.check_failures.outputs.failures != '0' }}
@@ -58,19 +59,11 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const fs = require('fs');
-            const commentPath = 'pr_comment_body.txt';
-            if (!fs.existsSync(commentPath)) {
-              console.log("PR comment body not found. Skipping comment.");
-              return;
-            }
-
-            const body = fs.readFileSync(commentPath, 'utf8').trim();
             github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.payload.pull_request.number,
-              body,
+              body: process.env.FLAKY_TEST_COMMENT_BODY,
             });
 
       # - name: Update Flaky Tests in Google Sheets
