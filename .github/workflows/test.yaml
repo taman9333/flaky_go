@@ -34,6 +34,9 @@ jobs:
 
       - name: Check Failures in Test Results
         id: check_failures
+        # This step checks the number of test failures from the XML file.
+        # It ensures efficiency by reading only the first two lines of the file to extract the failure count.
+        # This avoids unnecessary processing of the entire test result JSON if there are no failures.
         run: |
           failures=$(sed -n '2{p;q;}' test_results.xml | awk -F'"' '{print $4}')
           echo "Failures: $failures"
