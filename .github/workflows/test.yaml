@@ -49,6 +49,14 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: test-results
+
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.21
     
       - name: Check Failures in Test Results
         id: check_failures
