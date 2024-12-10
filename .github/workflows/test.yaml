@@ -32,6 +32,9 @@ jobs:
           --jsonfile='test_results.json' --junitfile='test_results.xml' \
           --packages="./..." -- -count=1
 
+  flakytest:
+    runs-on: ubuntu-latest
+    steps:
       - name: Check Failures in Test Results
         id: check_failures
         # This step checks the number of test failures from the XML file.
