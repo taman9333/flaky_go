@@ -29,31 +29,66 @@ jobs:
           gotestsum \
           --format=github-actions \
           --rerun-fails --rerun-fails=10 --rerun-fails-max-failures=10 \
-          --packages="./..." -- -count=1 | tee /tmp/full_output.log
-          exit_code=${PIPESTATUS[0]}
-          [ $exit_code -ne 0 ] && exit $exit_code
-          sed 's/\x1b\[[0-9;]*m//g' /tmp/full_output.log | awk '/=== Failed/ {found=1} found' > /tmp/raw_output.log
-          go run tools/flaky_test/flaky_test_report/main.go < /tmp/raw_output.log > flaky_report.json
+          --jsonfile='test_results.json' --junitfile='test_results.xml' \
+          --packages="./..." -- -count=1
 
-      - name: Generate PR Comment
-        if: success()
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            test_results.json
+            test_results.xml
+
+  flakytest:
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Download Test Results
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results
+
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.21
+
+      - name: Install Dependencies
+        run: go mod tidy
+    
+      - name: Check Failures in Test Results
+        id: check_failures
+        # This step checks the number of test failures from the XML file.
+        # It ensures efficiency by reading only the first two lines of the file to extract the failure count.
+        # This avoids unnecessary processing of the entire test result JSON if there are no failures.
         run: |
-          go run tools/flaky_test/generate_pr_comment/main.go < flaky_report.json
+          failures=$(sed -n '2{p;q;}' test-results/test_results.xml | awk -F'"' '{print $4}')
+          echo "Failures: $failures"
+          echo "failures=$failures" >> $GITHUB_OUTPUT
+
+      - name: Generate Flaky Report
+        if: ${{ steps.check_failures.outputs.failures != '0' }}
+        run: |
+          go run tools/flaky_test/flaky_test_report_json/main.go < test-results/test_results.json > flaky_report.json
+
+      - name: Generate PR Comment Body
+        if: ${{ steps.check_failures.outputs.failures != '0' }}
+        run: |
+          go run tools/flaky_test/generate_pr_comment/main.go < flaky_report.json > flaky_comment_body.txt
 
       - name: Comment on PR
-        if: success()
+        if: ${{ steps.check_failures.outputs.failures != '0' }}
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require('fs');
-            const commentPath = 'pr_comment_body.txt';
-            if (!fs.existsSync(commentPath)) {
-              console.log("PR comment body not found. Skipping comment.");
-              return;
-            }
-
-            const body = fs.readFileSync(commentPath, 'utf8').trim();
+            const body = fs.readFileSync('flaky_comment_body.txt', 'utf8').trim();
             github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -68,7 +103,7 @@ jobs:
       #     GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
 
       - name: Update Jira Tickets for Flaky Tests
-        if: success()
-        run: go run tools/flaky_test/update_jira_tickets/main.go
+        if: ${{ steps.check_failures.outputs.failures != '0' }}
+        run: go run tools/flaky_test/update_jira_tickets/main.go < flaky_report.json
         env:
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}

@@ -34,9 +34,6 @@ func main() {
 		commentBody += fmt.Sprintf("- `%s`: %d occurrences\n", test.TestName, test.Occurrences)
 	}
 
-	if err := os.WriteFile("pr_comment_body.txt", []byte(commentBody), 0644); err != nil {
-		log.Fatalf("Failed to write pr_comment_body.txt: %v", err)
-	}
-
-	fmt.Println("PR comment body generated successfully.")
+	// Output the comment body to stdout
+	fmt.Println(commentBody)
 }
