@@ -32,10 +32,24 @@ jobs:
           --jsonfile='test_results.json' --junitfile='test_results.xml' \
           --packages="./..." -- -count=1
 
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: |
+            test_results.json
+            test_results.xml
+
   flakytest:
     runs-on: ubuntu-latest
     needs: test
+
     steps:
+      - name: Download Test Results
+        uses: actions/download-artifact@v3
+        with:
+          name: test-results
+    
       - name: Check Failures in Test Results
         id: check_failures
         # This step checks the number of test failures from the XML file.
