@@ -21,16 +21,11 @@ type FlakyTest struct {
 }
 
 func main() {
-	// Open the NDJSON file
-	file, err := os.Open("test_results.json")
-	if err != nil {
-		log.Fatalf("Failed to open JSON file: %v", err)
-	}
-	defer file.Close()
+	// Read from standard input
+	scanner := bufio.NewScanner(os.Stdin)
 
 	// Process NDJSON line by line
 	flakyCounts := make(map[string]int)
-	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
 
@@ -48,7 +43,7 @@ func main() {
 	}
 
 	if err := scanner.Err(); err != nil {
-		log.Fatalf("Failed to read file: %v", err)
+		log.Fatalf("Failed to read input: %v", err)
 	}
 
 	// Convert flakyCounts to JSON array

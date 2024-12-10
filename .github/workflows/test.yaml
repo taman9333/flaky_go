@@ -45,7 +45,7 @@ jobs:
       - name: Generate Flaky Report
         if: ${{ steps.check_failures.outputs.failures != '0' }}
         run: |
-          go run tools/flaky_test/flaky_test_report_json/main.go > flaky_report.json
+          go run tools/flaky_test/flaky_test_report_json/main.go < test_results.json > flaky_report.json
 
       - name: Generate PR Comment Body
         if: ${{ steps.check_failures.outputs.failures != '0' }}
@@ -75,6 +75,6 @@ jobs:
 
       - name: Update Jira Tickets for Flaky Tests
         if: ${{ steps.check_failures.outputs.failures != '0' }}
-        run: go run tools/flaky_test/update_jira_tickets/main.go
+        run: go run tools/flaky_test/update_jira_tickets/main.go < flaky_report.json
         env:
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}

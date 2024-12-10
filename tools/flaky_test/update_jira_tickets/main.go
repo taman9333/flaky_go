@@ -46,9 +46,9 @@ func main() {
 		log.Fatal("JIRA_API_TOKEN environment variables is not set")
 	}
 
-	data, err := os.ReadFile("flaky_report.json")
+	data, err := io.ReadAll(os.Stdin)
 	if err != nil {
-		log.Fatalf("Failed to read flaky_report.json: %v", err)
+		log.Fatalf("Failed to read input: %v", err)
 	}
 
 	var flakyTests []FlakyTest
