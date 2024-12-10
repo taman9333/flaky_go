@@ -49,7 +49,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: test-results
-          path: .
 
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -68,14 +67,14 @@ jobs:
         # It ensures efficiency by reading only the first two lines of the file to extract the failure count.
         # This avoids unnecessary processing of the entire test result JSON if there are no failures.
         run: |
-          failures=$(sed -n '2{p;q;}' test_results.xml | awk -F'"' '{print $4}')
+          failures=$(sed -n '2{p;q;}' test-results/test_results.xml | awk -F'"' '{print $4}')
           echo "Failures: $failures"
           echo "failures=$failures" >> $GITHUB_OUTPUT
 
       - name: Generate Flaky Report
         if: ${{ steps.check_failures.outputs.failures != '0' }}
         run: |
-          go run tools/flaky_test/flaky_test_report_json/main.go < test_results.json > flaky_report.json
+          go run tools/flaky_test/flaky_test_report_json/main.go < test-results/test_results.json > flaky_report.json
 
       - name: Generate PR Comment Body
         if: ${{ steps.check_failures.outputs.failures != '0' }}
